@@ -21,7 +21,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+//For the react app
+app.use(express.static(path.join(__dirname, "..", "client", "build")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+});
 
 app.use('/users', usersRouter);
 app.use('/api/auth', authRouter);
@@ -39,12 +43,13 @@ app.use((err, req, res, next) => {
 });
 
 
-mongoose.connect(process.env.DB_URL, 
-  { useNewUrlParser: true}, 
+mongoose.connect(process.env.DB_URL,
+  { useNewUrlParser: true },
   (err) => {
     if (err) throw err;
     console.log('DB Connected');
   }
 );
+
 
 module.exports = app;
