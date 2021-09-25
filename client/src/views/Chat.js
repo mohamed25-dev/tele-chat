@@ -1,10 +1,11 @@
 import React from 'react';
 import { Row, Spinner } from 'reactstrap';
-import { ContactHeader, 
-  Contacts, 
-  ChatHeader, 
-  Messages, 
-  MessageForm, 
+import {
+  ContactHeader,
+  Contacts,
+  ChatHeader,
+  Messages,
+  MessageForm,
   UserProfile,
   EditProfile
 } from 'components';
@@ -29,41 +30,41 @@ class Chat extends React.Component {
       if (message.sender === contact._id) messages[index].seen = true;
     });
 
-    this.setState({messages});
+    this.setState({ messages });
   }
 
   intiSocketConnection = () => {
-    const socket = io(process.env.SOCKET_URL, {
+    const socket = io(process.env.REACT_APP_SOCKET, {
       query: `token=${Auth.getToken()}`
     });
 
-    this.setState({socket});
+    this.setState({ socket });
 
     socket.on('connect', () => {
-      this.setState({connected: true});
+      this.setState({ connected: true });
     });
-    
+
     socket.on('data', (user, contacts, messages, users) => {
       const contact = contacts[0] || {};
-      this.setState({ user, contact, contacts, messages}, () => {
-          this.updateUserState(users);
+      this.setState({ user, contact, contacts, messages }, () => {
+        this.updateUserState(users);
       });
     });
 
     socket.on('message', (message) => {
       if (message.sender === this.state.contact._id) {
-        this.setState({typing: false});
+        this.setState({ typing: false });
         this.state.socket.emit('seen', this.state.contact._id);
 
         message.seen = true;
       }
 
       const messages = this.state.messages.concat(message);
-      this.setState({messages});
+      this.setState({ messages });
     });
 
     socket.on('disconnect', () => {
-      this.setState({connected: false});
+      this.setState({ connected: false });
     });
 
     socket.on('new_user', (contact) => {
@@ -87,26 +88,26 @@ class Chat extends React.Component {
     });
 
     socket.on('typing', this.onTypingMessage);
-    
+
 
     socket.on('error', err => {
       if (err === 'Unauthenticated') {
         Auth.logout();
-        this.props.histroy.push('/'); 
+        this.props.histroy.push('/');
       }
     });
   }
 
   onUpdateUser = (user) => {
     if (this.state.user._id === user._id) {
-      this.setState({user});
+      this.setState({ user });
       Auth.setUser(user)
-      
+
       return;
     }
 
     const contacts = this.state.contacts;
-    
+
     contacts.forEach((contact, index) => {
       if (contact._id === user._id) {
         contacts[index] = user;
@@ -114,23 +115,23 @@ class Chat extends React.Component {
       }
     });
 
-    this.setState({contacts});
+    this.setState({ contacts });
 
-    if (this.state.contact._id === user._id ) {
-      this.setState({contact: user});
+    if (this.state.contact._id === user._id) {
+      this.setState({ contact: user });
     }
   }
 
   onTypingMessage = (sender) => {
     if (this.state.contact._id !== sender) return;
-    this.setState({typing: sender});
+    this.setState({ typing: sender });
 
     clearTimeout(this.state.timeout);
     const timeout = setTimeout(this.typingTimeout, 3000);
-    this.setState({timeout});
+    this.setState({ timeout });
   }
 
-  typingTimeout = () => this.setState({typing: false});
+  typingTimeout = () => this.setState({ typing: false });
 
   sendMessage = (message) => {
     if (!this.state.contact._id) return;
@@ -138,7 +139,7 @@ class Chat extends React.Component {
     message.receiver = this.state.contact._id;
     const messages = this.state.messages.concat(message);
 
-    this.setState({messages});
+    this.setState({ messages });
     this.state.socket.emit('message', message);
   }
 
@@ -146,7 +147,7 @@ class Chat extends React.Component {
     this.state.socket.emit('typing', this.state.contact._id);
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.intiSocketConnection();
   }
 
@@ -159,14 +160,14 @@ class Chat extends React.Component {
       }
     });
 
-    this.setState({contacts});
+    this.setState({ contacts });
 
     const contact = this.state.contact;
     if (users[contact._id]) {
       contact.status = users[contact._id];
     }
 
-    this.setState({contact});
+    this.setState({ contact });
   }
 
   toggleShowProfile = () => {
@@ -181,15 +182,21 @@ class Chat extends React.Component {
     });
   }
 
+  logout = () => {
+    this.state.socket.disconnect();
+    Auth.logout();
+    this.props.history.push('/');
+  };
+
   render() {
-    if (!this.state.connected || !this.state.user ) {
-      return <Spinner id='loader' color='success'/>
+    if (!this.state.connected || !this.state.user) {
+      return <Spinner id='loader' color='success' />
     }
 
     return (
       <Row className="h-100">
         <div id="contacts-section" className="col-6 col-md-4" >
-          <ContactHeader 
+          <ContactHeader
             user={this.state.user}
             toggleShowProfileEdit={this.toggleShowProfileEdit}
           />
@@ -200,15 +207,15 @@ class Chat extends React.Component {
             onChatNavigate={this.onChatNavigate}
           />
 
-          <UserProfile 
-            contact={this.state.contact} 
-            toggleShowProfile={this.toggleShowProfile} 
+          <UserProfile
+            contact={this.state.contact}
+            toggleShowProfile={this.toggleShowProfile}
             open={this.state.showProfile}
           />
 
-          <EditProfile 
-            user={this.state.user} 
-            toggleShowProfileEdit={this.toggleShowProfileEdit} 
+          <EditProfile
+            user={this.state.user}
+            toggleShowProfileEdit={this.toggleShowProfileEdit}
             open={this.state.showProfileEdit}
           />
         </div>
@@ -218,13 +225,13 @@ class Chat extends React.Component {
             contact={this.state.contact}
             typing={this.state.typing}
             toggle={this.userProfileToggle}
-            logout={this.logout} 
-            toggleShowProfile={this.toggleShowProfile} 
+            logout={this.logout}
+            toggleShowProfile={this.toggleShowProfile}
           />
-          
+
           {this.renderChat()}
 
-          <MessageForm sender={this.sendMessage} sendTyping={this.sendTyping}/>
+          <MessageForm sender={this.sendMessage} sendTyping={this.sendTyping} />
         </div>
       </Row>
     );

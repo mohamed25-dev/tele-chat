@@ -30,7 +30,7 @@ const Login = (props) => {
         password
       }
   
-      const result = await axios.post('/api/auth', data);
+      const result = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth`, data);
       Auth.login(result.data);
 
       props.history.push('/');

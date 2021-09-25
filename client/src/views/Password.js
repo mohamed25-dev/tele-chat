@@ -18,7 +18,7 @@ class Password extends React.Component {
   onSubmit = e => {
     e.preventDefault();
     let data = { password: this.state.password, newPassword: this.state.newPassword };
-    axios.post('/api/account/password', data)
+    axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/account/password`, data)
       .then(res => {
         this.props.history.push('/')
       })

@@ -37,7 +37,7 @@ const Register = (props) => {
         password
       }
   
-      const result = await axios.post('/api/auth/register', data);
+      const result = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/auth/register`, data);
       Auth.login(result.data);
 
       props.history.push('/');
